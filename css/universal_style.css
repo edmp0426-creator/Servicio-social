@@ -1,0 +1,60 @@
+body {
+  background: linear-gradient(135deg, #c9d6ff, #e2e2e2);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card-flotante {
+  position: relative;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(15px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 20px 30px;
+  max-width: 800px;
+  color: #000;
+  overflow: hidden;
+}
+
+/* Brillo líquido dinámico */
+.card-flotante::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.4), transparent 70%);
+  opacity: 0.3;
+  animation: shimmer 8s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50%, 50%);
+  }
+}
+
+/* Texto */
+.card-flotante h3 {
+  color: #008060;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.card-flotante p {
+  font-size: 16px;
+  line-height: 1.5;
+  text-align: center;
+  margin: 0;
+}
