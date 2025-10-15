@@ -12,7 +12,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: linear-gradient(to right, #e2e2e2, #c9d6ff);
+    background: #EEECEC;
     color: #333;
 }
 
@@ -49,7 +49,7 @@ input {
 button {
     width: 100%;
     padding: 12px;
-    background: #7494ec;
+    background: #008C72;
     border-radius: 6px;
     border: none;
     cursor: pointer;
@@ -60,5 +60,12 @@ button {
     transition: 0.5s;
 }
 button:hover {
-    background: #6884d3;
+    background: #00604E;
+}
+
+.logo {
+    display: block;
+    margin: 0 auto 20px auto;
+    max-width: 200px;
+    image-align: center;
 }
