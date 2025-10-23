@@ -1,68 +1,78 @@
-# test-allport Database
+# test-allport — inicialización de la base de datos
 
-Este proyecto contiene la inicialización de la base de datos `test-allport` para un sistema de test de aptitudes.
+Este repositorio contiene el SQL de inicialización para la base de datos `test-allport` (archivo: `db/test-allport-db.sql`). El dump fue generado con phpMyAdmin y crea las tablas necesarias para el test de aptitudes.
 
-## Estructura de Tablas
+Resumen rápido
 
-- **aptitudes-test**: Almacena las aptitudes disponibles.
-  - `id_aptitud` (int, auto_increment, PK)
-  - `aptitud` (varchar(45))
+- Archivo de inicialización: `db/test-allport-db.sql`
+- Base/Schema creada: `test-allport`
+- Servicio MySQL definido en `docker-compose.yml` con nombre de servicio `mysql` y volumen de inicialización `./db:/docker-entrypoint-initdb.d:ro`
 
-- **opciones-test**: Opciones de respuesta para cada pregunta.
-  - `id_opcion` (int, auto_increment, PK, UNIQUE)
-  - `opcion` (varchar(255))
-  - `id_pregunta` (varchar(45))
-  - `id_apt_1` (int)
-  - `id_apt_2` (varchar(45))
+Estructura principal (resumen)
 
-- **preguntas-test**: Preguntas del test.
-  - `id_pregunta` (int, auto_increment, PK, UNIQUE)
-  - `pregunta` (varchar(255))
-  - `parte` (tinyint)
-  - `bloque` (int)
+- `aptitudes-test` — id_aptitud (PK, AUTO_INCREMENT), aptitud
+- `opciones-test` — id_opcion (PK, AUTO_INCREMENT), opcion, id_pregunta, id_apt_1
+- `preguntas-test` — id_pregunta (PK, AUTO_INCREMENT), pregunta, parte, bloque
 
-## Características
+Notas:
+- Los nombres de tabla incluyen guiones (`-`) como en el dump original (ej. `aptitudes-test`). Estos nombres son válidos cuando se usan entre comillas en SQL, pero pueden dificultar su uso desde código; recomiendo usar guiones bajos (`_`) si vas a integrar esta estructura desde PHP/ORMs.
 
-- Todas las tablas usan el motor InnoDB y codificación UTF-8.
-- Las claves primarias y únicas están definidas para cada tabla.
-- Los campos de ID son autoincrementables.
+Inicializar la base de datos (Docker Compose)
 
-## Uso
+1. Levanta los servicios (primera ejecución):
 
-1. Con Docker Compose (recomendado):
-
-  - Asegúrate de que el servicio MySQL en `docker-compose.yml` monte la carpeta `./db` en `/docker-entrypoint-initdb.d`.
-  - Levanta los servicios (si es la primera vez que arrancas la base, MySQL ejecutará los scripts `.sql` dentro de `/docker-entrypoint-initdb.d`):
-
-```bash
+```powershell
 docker-compose up -d --build
 ```
 
-  - Si necesitas forzar la re-ejecución de los scripts de inicialización (por ejemplo tras cambios en `db/test-allport-db.sql`), elimina el volumen de datos de MySQL y reinicia:
+Al iniciarse por primera vez, la imagen oficial de MySQL ejecuta todos los archivos `.sql` que encuentre en `/docker-entrypoint-initdb.d`. Como `docker-compose.yml` monta `./db` en esa carpeta dentro del contenedor, `test-allport-db.sql` se ejecutará automáticamente y creará el schema `test-allport`.
 
-```bash
+2. Forzar re-ejecución (si ya existe un volumen de datos):
+
+Si ya levantaste MySQL antes, los scripts no se vuelven a ejecutar. Para forzarlo debes eliminar el volumen de datos y reiniciar. En PowerShell:
+
+```powershell
 docker-compose down
+# elimina el volumen gestionado por docker-compose (ajusta el nombre si lo cambiaste)
 docker volume rm Servicio_mysql_data || true
 docker-compose up -d --build
 ```
 
-2. Importación manual (alternativa):
+Alternativa: ejecutar el SQL manualmente dentro del contenedor MySQL sin tocar el volumen:
 
-```bash
-mysql -u root -p < db/test-allport-db.sql
+```powershell
+docker-compose exec mysql bash -c "mysql -u root -p\"$env:MYSQL_ROOT_PASSWORD\" < /docker-entrypoint-initdb.d/test-allport-db.sql"
 ```
 
-Nota: el script crea la base `test-allport` y la usa internamente.
+Verificar que la base existe
 
-## Requisitos
+1. Revisar logs de MySQL para ver si el script se ejecutó correctamente:
 
-- MySQL 9.4.0 o compatible
-- PHP 8.2.27 o superior
+```powershell
+docker-compose logs mysql
+```
 
-## Créditos
+Busca mensajes que indiquen ejecución de scripts y creación de tablas.
 
-- Generado con phpMyAdmin 5.2.2
+2. Conectarse al contenedor y listar bases:
 
----
+```powershell
+docker-compose exec mysql mysql -u root -p
+# dentro de mysql:
+SHOW DATABASES;
+USE `test-allport`;
+SHOW TABLES;
+```
 
-Para dudas o mejoras, contacta al autor del proyecto.
+3. O usar phpMyAdmin en `http://localhost:8081` (usuario: `root`, contraseña: `root`) y comprobar que `test-allport` aparece en la lista de bases.
+
+Recomendaciones
+
+- Si vas a usar las tablas desde PHP, evita nombres con guiones y cambia a `aptitudes_test`, `opciones_test`, `preguntas_test` — puedo ayudarte a migrar y actualizar el SQL + código.
+- Mantén el archivo SQL en `db/` y edítalo; si actualizas la estructura frecuentemente, conviene crear un script `make reset-db` o un pequeño comando PowerShell para automatizar la eliminación del volumen y el reinicio.
+
+Preguntas frecuentes rápidas
+
+- ¿Por qué no se ejecuta el SQL al reiniciar? — Porque MySQL solo ejecuta los scripts de `/docker-entrypoint-initdb.d` cuando el directorio de datos está vacío (volumen nuevo). Para re-ejecutar debes eliminar el volumen o importar manualmente el .sql.
+
+¿Quieres que pruebe levantar los contenedores aquí y valide la creación del schema, o prefieres que genere un pequeño script `reset-db.ps1` para automatizar la re-inicialización? 
