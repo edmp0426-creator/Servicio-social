@@ -29,8 +29,30 @@ Este proyecto contiene la inicialización de la base de datos `test-allport` par
 
 ## Uso
 
-1. Importa el archivo `test-allport.sql` en tu servidor MySQL (por ejemplo, usando phpMyAdmin o el comando `mysql`).
-2. La base de datos y las tablas se crearán automáticamente con la estructura definida.
+1. Con Docker Compose (recomendado):
+
+  - Asegúrate de que el servicio MySQL en `docker-compose.yml` monte la carpeta `./db` en `/docker-entrypoint-initdb.d`.
+  - Levanta los servicios (si es la primera vez que arrancas la base, MySQL ejecutará los scripts `.sql` dentro de `/docker-entrypoint-initdb.d`):
+
+```bash
+docker-compose up -d --build
+```
+
+  - Si necesitas forzar la re-ejecución de los scripts de inicialización (por ejemplo tras cambios en `db/test-allport-db.sql`), elimina el volumen de datos de MySQL y reinicia:
+
+```bash
+docker-compose down
+docker volume rm Servicio_mysql_data || true
+docker-compose up -d --build
+```
+
+2. Importación manual (alternativa):
+
+```bash
+mysql -u root -p < db/test-allport-db.sql
+```
+
+Nota: el script crea la base `test-allport` y la usa internamente.
 
 ## Requisitos
 

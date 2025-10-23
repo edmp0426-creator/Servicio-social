@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: mysql
--- Tiempo de generación: 23-10-2025 a las 16:29:09
+-- Tiempo de generación: 23-10-2025 a las 16:35:08
 -- Versión del servidor: 8.0.43
 -- Versión de PHP: 8.2.27
 
@@ -20,13 +20,15 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `test-allport`
 --
+CREATE DATABASE IF NOT EXISTS `test-allport` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE `test-allport`;
 
 -- --------------------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `aptitudes-test`
 --
-
+DROP TABLE IF EXISTS `aptitudes-test`;
 CREATE TABLE `aptitudes-test` (
   `id_aptitud` int UNSIGNED NOT NULL,
   `aptitud` varchar(45) NOT NULL
@@ -37,7 +39,7 @@ CREATE TABLE `aptitudes-test` (
 --
 -- Estructura de tabla para la tabla `opciones-test`
 --
-
+DROP TABLE IF EXISTS `opciones-test`;
 CREATE TABLE `opciones-test` (
   `id_opcion` int NOT NULL,
   `opcion` varchar(255) NOT NULL,
@@ -176,7 +178,7 @@ INSERT INTO `opciones-test` (`id_opcion`, `opcion`, `id_pregunta`, `id_apt_1`) V
 --
 -- Estructura de tabla para la tabla `preguntas-test`
 --
-
+DROP TABLE IF EXISTS `preguntas-test`;
 CREATE TABLE `preguntas-test` (
   `id_pregunta` int NOT NULL,
   `pregunta` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NOT NULL,
