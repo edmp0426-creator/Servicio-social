@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: mysql
--- Tiempo de generación: 23-10-2025 a las 16:35:08
+-- Tiempo de generación: 07-11-2025 a las 03:50:07
 -- Versión del servidor: 8.0.43
 -- Versión de PHP: 8.2.27
 
@@ -20,26 +20,57 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `test-allport`
 --
-CREATE DATABASE IF NOT EXISTS `test-allport` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-USE `test-allport`;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `alumnos-test`
+--
+
+CREATE TABLE `alumnos-test` (
+  `id_alumno` int NOT NULL,
+  `nombre_alumno` varchar(70) NOT NULL,
+  `apellido1_alumno` varchar(50) NOT NULL,
+  `apellido2_alumno` varchar(50) NOT NULL,
+  `matricula-alumno` int NOT NULL,
+  `apt1` int NOT NULL,
+  `ap2` int NOT NULL,
+  `ap3` int NOT NULL,
+  `ap4` int NOT NULL,
+  `ap5` int NOT NULL,
+  `ap6` int NOT NULL,
+  `respuestas-alumno` varchar(300) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `aptitudes-test`
 --
-DROP TABLE IF EXISTS `aptitudes-test`;
+
 CREATE TABLE `aptitudes-test` (
   `id_aptitud` int UNSIGNED NOT NULL,
   `aptitud` varchar(45) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Volcado de datos para la tabla `aptitudes-test`
+--
+
+INSERT INTO `aptitudes-test` (`id_aptitud`, `aptitud`) VALUES
+(1, 'Teórico'),
+(2, 'Económico'),
+(3, 'Estético'),
+(4, 'Social'),
+(5, 'Político'),
+(6, 'Religioso');
 
 -- --------------------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `opciones-test`
 --
-DROP TABLE IF EXISTS `opciones-test`;
+
 CREATE TABLE `opciones-test` (
   `id_opcion` int NOT NULL,
   `opcion` varchar(255) NOT NULL,
@@ -178,7 +209,7 @@ INSERT INTO `opciones-test` (`id_opcion`, `opcion`, `id_pregunta`, `id_apt_1`) V
 --
 -- Estructura de tabla para la tabla `preguntas-test`
 --
-DROP TABLE IF EXISTS `preguntas-test`;
+
 CREATE TABLE `preguntas-test` (
   `id_pregunta` int NOT NULL,
   `pregunta` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_spanish_ci NOT NULL,
@@ -242,6 +273,12 @@ INSERT INTO `preguntas-test` (`id_pregunta`, `pregunta`, `parte`, `bloque`) VALU
 --
 
 --
+-- Indices de la tabla `alumnos-test`
+--
+ALTER TABLE `alumnos-test`
+  ADD PRIMARY KEY (`id_alumno`);
+
+--
 -- Indices de la tabla `aptitudes-test`
 --
 ALTER TABLE `aptitudes-test`
@@ -266,10 +303,16 @@ ALTER TABLE `preguntas-test`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `alumnos-test`
+--
+ALTER TABLE `alumnos-test`
+  MODIFY `id_alumno` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `aptitudes-test`
 --
 ALTER TABLE `aptitudes-test`
-  MODIFY `id_aptitud` int UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id_aptitud` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `opciones-test`
