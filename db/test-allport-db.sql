@@ -221,6 +221,9 @@ CREATE TABLE `preguntas-test` (
 -- Volcado de datos para la tabla `preguntas-test`
 --
 
+
+
+
 INSERT INTO `preguntas-test` (`id_pregunta`, `pregunta`, `parte`, `bloque`) VALUES
 (1, 'El principal objetivo de la investigación científica debería ser el descubrimiento de la verdad más que sus aplicaciones prácticas.', 1, 1),
 (2, 'En términos generales, la Biblia se debería estudiar desde el punto de vista de su hermosa mitología y estilo literario, en lugar de cómo una revelación espiritual.', 1, 1),
@@ -230,43 +233,43 @@ INSERT INTO `preguntas-test` (`id_pregunta`, `pregunta`, `parte`, `bloque`) VALU
 (6, '¿Cuál de las siguientes áreas de estudio cree usted que en el futuro llegará a tener mayor importancia para la humanidad?', 1, 1),
 (7, '¿Cuál considera usted que debe ser la función más importante de los líderes actuales?', 1, 1),
 (8, 'Cuando es testigo de una ceremonia fastuosa (eclesiástica o académica, de nombramiento de un funcionario, etc.), ¿qué le impresiona más?', 1, 1),
-(9, '¿Cuáles de estos rasgos de carácter considera más deseables?', 1, 2),
-(10, 'Si usted fuera un profesor universitario y tuviera la capacidad necesaria, ¿preferiría enseñar:', 1, 2),
-(11, 'Si viera las siguientes noticias con encabezados del mismo tamaño en el periódico matutino, ¿cuál leería con más atención?', 1, 2),
-(12, 'En las mismas circunstancias que las de la pregunta anterior:', 1, 2),
-(13, 'Cuando visita una catedral, ¿le impresiona más la sensación general de respeto y veneración que las características arquitectónicas y los frescos e imágenes?', 1, 2),
-(14, 'Suponiendo que tuviera suficiente tiempo disponible, ¿preferiría utilizarlo en:', 1, 2),
-(15, 'En una exposición, ¿le agrada principalmente ir a lugares donde puede ver:', 1, 2),
-(16, 'Si tuviera oportunidad y en la comunidad en donde usted vive no existiera, ¿preferiría encontrar:', 1, 2),
-(17, 'La meta de las Iglesias en la actualidad debería ser:', 1, 3),
-(18, 'Si tuviera que pasar cierto tiempo en una sala de espera y sólo hubiera dos tipos de revistas a elegir, ¿preferiría:', 1, 3),
-(19, '¿Preferiría escuchar una serie de conferencias sobre:', 1, 3),
-(20, '¿Cuál de las siguientes funciones de la educación formal le parece la más importante?', 1, 3),
-(21, '¿Está más interesado en leer narraciones sobre la vida y obra de hombres como:', 1, 3),
-(22, '¿Los avances industriales y científicos modernos son señal de un mayor grado de civilización que los logrados por cualquier sociedad de tiempos anteriores, por ejemplo, los griegos?', 1, 3),
-(23, 'Si trabajara en una organización industrial (y suponiendo que los salarios fueran iguales), ¿usted preferiría:', 1, 3),
-(24, 'Si tuviera que elegir entre la lectura de dos libros, ¿sería más probable que usted seleccionara:', 1, 4),
-(25, 'La sociedad moderna se beneficiaría más de:', 1, 4),
-(26, 'Suponga que está en posición de ayudar a elevar la calidad de vida o moldear la opinión pública, ¿preferiría influir en:', 1, 4),
-(27, '¿Preferiría escuchar una serie de conferencias populares sobre:', 1, 4),
-(28, 'Toda la evidencia que se ha acumulado de manera imparcial, muestra que el universo ha evolucionado hasta su estado actual de acuerdo con leyes naturales, de modo que no hay necesidad para suponer que detrás de ello existe una causa primera, propósito cósmico o divinidad.', 1, 4),
-(29, 'En un periódico dominical, ¿es más probable que usted lea:', 1, 4),
-(30, '¿Qué considera más importante en el desarrollo de la educación de sus hijos:', 1, 4),
-(31, '¿Considera usted que un buen gobierno debería tener por meta prinicipal: (Recuerde asignar un 4 a su primera preferencia, 3 a la segunda, etc.)', 2, 1),
-(32, 'En su opinión, un hombre de negocios que trabaja toda la semana, pasaría el mejor domingo:', 2, 1),
-(33, 'Si usted pudiera influir en los programas educativos de las escuelas públicas de la ciudad donde vive, usted intentaría:', 2, 1),
-(34, 'En amigos de propio sexo, prefiere usted a uno que:', 2, 1),
-(35, 'Si viviera en un pueblo pequeño y tuviera un ingreso mayor a lo que requieren sus necesidades, ¿preferiría:', 2, 1),
-(36, 'Cuando usted va al teatro, por lo general gusta más de:', 2, 1),
+(9, '¿Cuáles de estos rasgos de carácter considera más deseables?', 1, 1),
+(10, 'Si usted fuera un profesor universitario y tuviera la capacidad necesaria, ¿preferiría enseñar:', 1, 1),
+(11, 'Si viera las siguientes noticias con encabezados del mismo tamaño en el periódico matutino, ¿cuál leería con más atención?', 1, 1),
+(12, 'En las mismas circunstancias que las de la pregunta anterior:', 1, 1),
+(13, 'Cuando visita una catedral, ¿le impresiona más la sensación general de respeto y veneración que las características arquitectónicas y los frescos e imágenes?', 1, 1),
+(14, 'Suponiendo que tuviera suficiente tiempo disponible, ¿preferiría utilizarlo en:', 1, 1),
+(15, 'En una exposición, ¿le agrada principalmente ir a lugares donde puede ver:', 1, 1),
+(16, 'Si tuviera oportunidad y en la comunidad en donde usted vive no existiera, ¿preferiría encontrar:', 1, 1),
+(17, 'La meta de las Iglesias en la actualidad debería ser:', 1, 1),
+(18, 'Si tuviera que pasar cierto tiempo en una sala de espera y sólo hubiera dos tipos de revistas a elegir, ¿preferiría:', 1, 1),
+(19, '¿Preferiría escuchar una serie de conferencias sobre:', 1, 1),
+(20, '¿Cuál de las siguientes funciones de la educación formal le parece la más importante?', 1, 1),
+(21, '¿Está más interesado en leer narraciones sobre la vida y obra de hombres como:', 1, 1),
+(22, '¿Los avances industriales y científicos modernos son señal de un mayor grado de civilización que los logrados por cualquier sociedad de tiempos anteriores, por ejemplo, los griegos?', 1, 1),
+(23, 'Si trabajara en una organización industrial (y suponiendo que los salarios fueran iguales), ¿usted preferiría:', 1, 1),
+(24, 'Si tuviera que elegir entre la lectura de dos libros, ¿sería más probable que usted seleccionara:', 1, 1),
+(25, 'La sociedad moderna se beneficiaría más de:', 1, 1),
+(26, 'Suponga que está en posición de ayudar a elevar la calidad de vida o moldear la opinión pública, ¿preferiría influir en:', 1, 1),
+(27, '¿Preferiría escuchar una serie de conferencias populares sobre:', 1, 1),
+(28, 'Toda la evidencia que se ha acumulado de manera imparcial, muestra que el universo ha evolucionado hasta su estado actual de acuerdo con leyes naturales, de modo que no hay necesidad para suponer que detrás de ello existe una causa primera, propósito cósmico o divinidad.', 1, 1),
+(29, 'En un periódico dominical, ¿es más probable que usted lea:', 1, 1),
+(30, '¿Qué considera más importante en el desarrollo de la educación de sus hijos:', 1, 1),
+(31, '¿Considera usted que un buen gobierno debería tener por meta prinicipal: (Recuerde asignar un 4 a su primera preferencia, 3 a la segunda, etc.)', 2, 2),
+(32, 'En su opinión, un hombre de negocios que trabaja toda la semana, pasaría el mejor domingo:', 2, 2),
+(33, 'Si usted pudiera influir en los programas educativos de las escuelas públicas de la ciudad donde vive, usted intentaría:', 2, 2),
+(34, 'En amigos de propio sexo, prefiere usted a uno que:', 2, 2),
+(35, 'Si viviera en un pueblo pequeño y tuviera un ingreso mayor a lo que requieren sus necesidades, ¿preferiría:', 2, 2),
+(36, 'Cuando usted va al teatro, por lo general gusta más de:', 2, 2),
 (37, 'Suponiendo que usted estuviera capacitado para ello, y que el salario para las siguientes ocupaciones fuera el mismo, ¿preferiría ser:', 2, 2),
 (38, 'Si tuviera suficiente dinero y tiempo, ¿preferiría:', 2, 2),
 (39, 'En una plática vespertina con amigos íntimos de su propio sexo, usted se muestra más interesado cuando se habla sobre:', 2, 2),
 (40, '¿Cuál de las siguientes actividades preferiría realizar durante parte de sus siguientes vacaciones (si su capacidad y otras condiciones lo permitieran)?', 2, 2),
 (41, 'Las grandes hazañas y exploraciones de descubrimiento, como las de Colón, Magallanes, Byrd y Marco Polo, le parecen significativas porque:', 2, 2),
-(42, 'Debería uno guiar su propia conducta de conformidad con, o brindar su mayor lealtad hacia:', 2, 3),
-(43, '¿Hasta qué punto admira usted a las siguientes personas famosas?', 2, 3),
-(44, 'Al elegir esposa, usted preferiría una mujer que: (Si es usted mujer responda a la pregunta 14A)', 2, 3),
-(45, 'Al ver el cuadro de Leonardo da Vinci, \"La Última Cena\", usted tiende a considerarlo como:', 2, 3);
+(42, 'Debería uno guiar su propia conducta de conformidad con, o brindar su mayor lealtad hacia:', 2, 2),
+(43, '¿Hasta qué punto admira usted a las siguientes personas famosas?', 2, 2),
+(44, 'Al elegir esposa, usted preferiría una mujer que: (Si es usted mujer responda a la pregunta 14A)', 2, 2),
+(45, 'Al ver el cuadro de Leonardo da Vinci, \"La Última Cena\", usted tiende a considerarlo como:', 2, 2);
 
 --
 -- Índices para tablas volcadas
@@ -277,6 +280,7 @@ INSERT INTO `preguntas-test` (`id_pregunta`, `pregunta`, `parte`, `bloque`) VALU
 --
 ALTER TABLE `alumnos-test`
   ADD PRIMARY KEY (`id_alumno`);
+
 
 --
 -- Indices de la tabla `aptitudes-test`
