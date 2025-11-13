@@ -106,7 +106,7 @@ echo "</pre>";
 
     .grid-column {
       flex: 0 0 20%;
-      max-width: 20%;
+     
       background: #f5f5f5;
       border-radius: 12px;
       padding: 20px;

@@ -39,6 +39,7 @@ CREATE TABLE `alumnos-test` (
   `ap4` int NOT NULL,
   `ap5` int NOT NULL,
   `ap6` int NOT NULL,
+  `estado` BOOLEAN NOT NULL DEFAULT 0,
   `respuestas-alumno` varchar(300) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 

@@ -20,18 +20,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Obtener datos del formulario (proteger si los campos no vienen)
-    $email = isset($_POST['email']) ? trim($_POST['email']) : '';
-    $password_input = isset($_POST['password']) ? $_POST['password'] : '';
+        // Obtener datos del formulario
+        $email = $_POST['email'];
+        $password = $_POST['password'];
 
         // Preparar la consulta
         $stmt = $conn->prepare("SELECT * FROM usuarios WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
-        if ($email === '' || $password_input === '') {
-            $error = "Por favor completa email y contraseña";
-        } else if ($user && password_verify($password_input, $user['password'])) {
+        if ($user && password_verify($password, $user['password'])) {
             // Iniciar sesión
             $_SESSION['user_id'] = $user['id_usuario'];
             $_SESSION['user_email'] = $user['email'];
