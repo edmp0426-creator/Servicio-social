@@ -69,14 +69,14 @@ if (!empty($rows_preguntas)) {
     $opciones[$id_pregunta] = $opciones_pregunta;
   }
 }
-
+/*
 echo "<pre>";
 echo "Array de Preguntas:\n";
 print_r($preguntas);
 echo "\n\nArray de Opciones:\n";
 print_r($opciones);
 echo "</pre>";
-
+*/
 // Ejemplo de cómo acceder a los datos:
 // $preguntas[1] contendrá el texto de la pregunta con id_pregunta = 1
 // $opciones[1] contendrá un array con todas las opciones de la pregunta 1
@@ -92,7 +92,36 @@ echo "</pre>";
     body {
       background-color: #d9d9d9; /* gris claro del fondo */
       font-family: Arial, sans-serif;
-      padding: 80px;
+      padding: 60px 80px;
+    }
+
+    .layout {
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+    }
+
+    .grid-column {
+      flex: 0 0 20%;
+      max-width: 20%;
+      border-right: 2px solid #bfbfbf;
+      padding-right: 20px;
+      background: #f5f5f5;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .grid-column .grid-form {
+      position: sticky;
+      top: 40px;
+    }
+
+    .content-column {
+      flex: 1;
+      padding: 30px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     }
 
     .pregunta {
@@ -114,6 +143,38 @@ echo "</pre>";
     .opcion {
       margin-bottom: 10px;
     }
+    .opciones-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    .opcion-label,
+    .separator {
+      font-weight: 700;
+    }
+    .separator {
+      font-size: 26px;
+    }
+    .opcion-text {
+      max-width: 320px;
+      text-align: center;
+    }
+    .radio-group {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px 0;
+      font-size: 20px;
+    }
+    .radio-group input {
+      cursor: pointer;
+      width: 20px;
+      height: 20px;
+    }
 
     /* Grilla de navegación 6 x n */
     .grid-form {
@@ -121,8 +182,8 @@ echo "</pre>";
     }
     .grid-preguntas {
       display: grid;
-      grid-template-columns: repeat(6, minmax(48px, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(5, minmax(48px, 1fr));
+      gap: 12px;
       align-items: stretch;
     }
     .celda {
@@ -165,44 +226,69 @@ echo "</pre>";
     }
     ?>
 
-    <!-- Grilla de navegación 6 x n -->
-    <form method="POST" class="grid-form">
-      <div class="grid-preguntas">
-        <?php for ($i = 1; $i <= $total_preguntas; $i++): ?>
-          <button
-            type="submit"
-            name="ir_a"
-            value="<?php echo $i; ?>"
-            class="celda <?php echo ($i === $indice_actual) ? 'celda-activa' : ''; ?>">
-            <?php echo $i; ?>
-          </button>
-        <?php endfor; ?>
+    <div class="layout">
+      <div class="grid-column">
+        <!-- Grilla de navegación 6 x n -->
+        <form method="POST" class="grid-form">
+          <div class="grid-preguntas">
+            <?php for ($i = 1; $i <= $total_preguntas; $i++): ?>
+              <button
+                type="submit"
+                name="ir_a"
+                value="<?php echo $i; ?>"
+                class="celda <?php echo ($i === $indice_actual) ? 'celda-activa' : ''; ?>">
+                <?php echo $i; ?>
+              </button>
+            <?php endfor; ?>
+          </div>
+        </form>
       </div>
-    </form>
 
-    <div class="pregunta" id="titulo-pregunta">Pregunta <?php echo $indice_actual; ?></div>
-    <div class="texto-pregunta" id="texto-pregunta"><?php echo htmlspecialchars(isset($preguntas[$indice_actual]) ? $preguntas[$indice_actual] : ''); ?></div>
+      <div class="content-column">
+        <div class="pregunta" id="titulo-pregunta">Pregunta <?php echo $indice_actual; ?></div>
+        <div class="texto-pregunta" id="texto-pregunta"><?php echo htmlspecialchars(isset($preguntas[$indice_actual]) ? $preguntas[$indice_actual] : ''); ?></div>
 
-    <div class="opciones">
-      <?php
-      $opciones_actuales = isset($opciones[$indice_actual]) ? $opciones[$indice_actual] : array();
-      for ($i = 0; $i < min(count($opciones_actuales), 4); $i++) {
-          echo '<div class="opcion" id="opcion'.($i+1).'">' . htmlspecialchars($opciones_actuales[$i]) . '</div>';
-      }
-      ?>
+        <div class="opciones">
+          <?php
+          $opciones_actuales = isset($opciones[$indice_actual]) ? $opciones[$indice_actual] : array();
+          $opcion_a = isset($opciones_actuales[0]) ? htmlspecialchars($opciones_actuales[0]) : '';
+          $opcion_b = isset($opciones_actuales[1]) ? htmlspecialchars($opciones_actuales[1]) : '';
+
+          if ($opcion_a !== '' || $opcion_b !== '') {
+              echo '<div class="opciones-row">';
+              echo '<span class="opcion-label">a)</span>';
+              echo '<span class="separator"> </span>';
+              echo '<span class="opcion-text opcion-a">' . $opcion_a . '</span>';
+              echo '<span class="separator"> </span>';
+              echo '<div class="radio-group">
+                      <input type="radio" name="selector_opciones" id="opA1" value="opA1" aria-label="opA1">
+                      <input type="radio" name="selector_opciones" id="opA2" value="opA2" aria-label="opA2">
+                      <input type="radio" name="selector_opciones" id="opB1" value="opB1" aria-label="opB1">
+                      <input type="radio" name="selector_opciones" id="opB2" value="opB2" aria-label="opB2">
+                    </div>';
+              if ($opcion_b !== '') {
+                  echo '<span class="separator"> </span>';
+                  echo '<span class="opcion-label">b)</span>';
+                  echo '<span class="separator"> </span>';
+                  echo '<span class="opcion-text opcion-b">' . $opcion_b . '</span>';
+              }
+              echo '</div>';
+          }
+          ?>
+        </div>
+
+        <form method="POST" style="margin-top: 40px; display: flex; justify-content: space-between; gap: 10px;">
+          
+          <?php if ($indice_actual > 1): ?>
+            <button type="submit" name="anterior" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Anterior</button>
+          <?php endif; ?>
+          
+          <?php if ($indice_actual < $total_preguntas): ?>
+            <button type="submit" name="siguiente" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Siguiente</button>
+          <?php endif; ?>
+        </form>
+      </div>
     </div>
-
-    <form method="POST" style="margin-top: 40px; display: flex; justify-content: space-between; gap: 10px;">
-      <button type="submit" name="primera" style="padding: 10px 20px; font-size: 18px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 4px;">Primera Pregunta</button>
-      
-      <?php if ($indice_actual > 1): ?>
-        <button type="submit" name="anterior" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Anterior</button>
-      <?php endif; ?>
-      
-      <?php if ($indice_actual < $total_preguntas): ?>
-        <button type="submit" name="siguiente" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Siguiente</button>
-      <?php endif; ?>
-    </form>
 
   </div>
 

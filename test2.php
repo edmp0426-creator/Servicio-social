@@ -79,7 +79,7 @@ print_r($preguntas);
 echo "\n\nArray de Opciones:\n";
 print_r($opciones);
 echo "</pre>";
-
+//*/
 // Ejemplo de cómo acceder a los datos:
 // $preguntas[1] contendrá el texto de la pregunta con id_pregunta = 1
 // $opciones[1] contendrá un array con todas las opciones de la pregunta 1
@@ -95,7 +95,35 @@ echo "</pre>";
     body {
       background-color: #d9d9d9; /* gris claro del fondo */
       font-family: Arial, sans-serif;
-      padding: 80px;
+      padding: 60px 80px;
+    }
+
+    .layout {
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+    }
+
+    .grid-column {
+      flex: 0 0 20%;
+      max-width: 20%;
+      background: #f5f5f5;
+      border-radius: 12px;
+      padding: 20px;
+      border-right: 2px solid #bfbfbf;
+    }
+
+    .grid-column .grid-form {
+      position: sticky;
+      top: 40px;
+    }
+
+    .content-column {
+      flex: 1;
+      padding: 30px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     }
 
     .pregunta {
@@ -110,12 +138,53 @@ echo "</pre>";
     }
 
     .opciones {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       font-size: 28px;
-      line-height: 2;
+    }
+    .opcion-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .opcion-label {
+      font-weight: 700;
+      color: #4CAF50;
+      min-width: 64px;
     }
 
     .opcion {
-      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #fff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid #d0d0d0;
+      flex: 1;
+    }
+    .opcion-texto {
+      flex: 1;
+    }
+    .opcion-controles {
+      display: flex;
+      gap: 6px;
+    }
+    .btn-mover {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid #4CAF50;
+      background: #fff;
+      color: #4CAF50;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .btn-mover:hover {
+      background: #4CAF50;
+      color: #fff;
     }
 
     /* Grilla de navegación 6 x n */
@@ -124,8 +193,8 @@ echo "</pre>";
     }
     .grid-preguntas {
       display: grid;
-      grid-template-columns: repeat(6, minmax(48px, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(5, minmax(48px, 1fr));
+      gap: 12px;
       align-items: stretch;
     }
     .celda {
@@ -172,47 +241,105 @@ echo "</pre>";
     }
     ?>
 
-    <!-- Grilla de navegación 6 x n -->
-    <form method="POST" class="grid-form">
-      <div class="grid-preguntas">
-        <?php foreach ($indices as $i): ?>
-          <button
-            type="submit"
-            name="ir_a"
-            value="<?php echo $i; ?>"
-            class="celda <?php echo ($i === $indice_actual) ? 'celda-activa' : ''; ?>">
-            <?php echo $i; ?>
-          </button>
-        <?php endforeach; ?>
+    <div class="layout">
+      <div class="grid-column">
+        <!-- Grilla de navegación 5 x n -->
+        <form method="POST" class="grid-form">
+          <div class="grid-preguntas">
+            <?php foreach ($indices as $i): ?>
+              <button
+                type="submit"
+                name="ir_a"
+                value="<?php echo $i; ?>"
+                class="celda <?php echo ($i === $indice_actual) ? 'celda-activa' : ''; ?>">
+                <?php echo $i; ?>
+              </button>
+            <?php endforeach; ?>
+          </div>
+        </form>
       </div>
-    </form>
 
-    <div class="pregunta" id="titulo-pregunta">Pregunta <?php echo $indice_actual; ?></div>
-    <div class="texto-pregunta" id="texto-pregunta"><?php echo htmlspecialchars(isset($preguntas[$indice_actual]) ? $preguntas[$indice_actual] : ''); ?></div>
+      <div class="content-column">
+        <div class="pregunta" id="titulo-pregunta">Pregunta <?php echo $indice_actual; ?></div>
+        <div class="texto-pregunta" id="texto-pregunta"><?php echo htmlspecialchars(isset($preguntas[$indice_actual]) ? $preguntas[$indice_actual] : ''); ?></div>
 
-    <div class="opciones">
-      <?php
-      $opciones_actuales = isset($opciones[$indice_actual]) ? $opciones[$indice_actual] : array();
-      for ($i = 0; $i < min(count($opciones_actuales), 4); $i++) {
-          $texto = isset($opciones_actuales[$i]['opcion']) ? $opciones_actuales[$i]['opcion'] : '';
-          echo '<div class="opcion" id="opcion'.($i+1).'">' . htmlspecialchars($texto) . '</div>';
-      }
-      ?>
+        <div class="opciones">
+          <?php
+          $opciones_actuales = isset($opciones[$indice_actual]) ? $opciones[$indice_actual] : array();
+          for ($i = 0; $i < min(count($opciones_actuales), 4); $i++) {
+              $texto = isset($opciones_actuales[$i]['opcion']) ? $opciones_actuales[$i]['opcion'] : '';
+              $label = '#' . ($i + 1);
+              echo '<div class="opcion-row">';
+              echo '<span class="opcion-label">' . htmlspecialchars($label) . '</span>';
+              echo '<div class="opcion" id="opcion'.($i+1).'">';
+              echo '<span class="opcion-texto">' . htmlspecialchars($texto) . '</span>';
+              echo '<div class="opcion-controles">';
+              echo '<button type="button" class="btn-mover" data-dir="up" aria-label="Mover opcion hacia arriba">&#8593;</button>';
+              echo '<button type="button" class="btn-mover" data-dir="down" aria-label="Mover opcion hacia abajo">&#8595;</button>';
+              echo '</div>';
+              echo '</div>';
+              echo '</div>';
+          }
+          ?>
+        </div>
+
+        <form method="POST" style="margin-top: 40px; display: flex; justify-content: space-between; gap: 10px;">
+          
+          <?php if ($indice_actual > $min_indice): ?>
+            <button type="submit" name="anterior" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Anterior</button>
+          <?php endif; ?>
+          
+          <?php if ($indice_actual < $max_indice): ?>
+            <button type="submit" name="siguiente" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Siguiente</button>
+          <?php endif; ?>
+        </form>
+      </div>
     </div>
 
-    <form method="POST" style="margin-top: 40px; display: flex; justify-content: space-between; gap: 10px;">
-      <button type="submit" name="primera" style="padding: 10px 20px; font-size: 18px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 4px;">Primera Pregunta</button>
-      
-      <?php if ($indice_actual > $min_indice): ?>
-        <button type="submit" name="anterior" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Anterior</button>
-      <?php endif; ?>
-      
-      <?php if ($indice_actual < $max_indice): ?>
-        <button type="submit" name="siguiente" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Siguiente</button>
-      <?php endif; ?>
-    </form>
+</div>
 
-  </div>
+<script>
+  (function() {
+    const contenedorOpciones = document.querySelector('.opciones');
+    if (!contenedorOpciones) return;
+
+    const actualizarEtiquetas = () => {
+      const filas = contenedorOpciones.querySelectorAll('.opcion-row');
+      filas.forEach((fila, index) => {
+        const label = fila.querySelector('.opcion-label');
+        if (label) {
+          label.textContent = '#' + (index + 1);
+        }
+      });
+    };
+
+    contenedorOpciones.addEventListener('click', function(evento) {
+      const boton = evento.target.closest('.btn-mover');
+      if (!boton) return;
+
+      const fila = boton.closest('.opcion-row');
+      if (!fila) return;
+
+      const direccion = boton.getAttribute('data-dir');
+
+      if (direccion === 'up') {
+        const anterior = fila.previousElementSibling;
+        if (anterior) {
+          contenedorOpciones.insertBefore(fila, anterior);
+          actualizarEtiquetas();
+        }
+      } else if (direccion === 'down') {
+        const siguiente = fila.nextElementSibling;
+        if (siguiente) {
+          contenedorOpciones.insertBefore(siguiente, fila);
+          actualizarEtiquetas();
+        }
+      }
+    });
+
+    actualizarEtiquetas();
+  })();
+</script>
 
 </body>
 </html>
