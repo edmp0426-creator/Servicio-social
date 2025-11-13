@@ -2,6 +2,40 @@
 session_start();
 include 'connection.php';
 
+// Diccionario base para las ponderaciones de aptitudes (1 a 6)
+$ponderaciones_base = array(
+    1 => 0,
+    2 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0,
+    6 => 0,
+);
+
+$ponderaciones_aptitudes = $ponderaciones_base;
+if (isset($_SESSION['ponderaciones_aptitudes']) && is_array($_SESSION['ponderaciones_aptitudes'])) {
+    foreach ($ponderaciones_aptitudes as $aptitud => $valor) {
+        if (isset($_SESSION['ponderaciones_aptitudes'][$aptitud])) {
+            $ponderaciones_aptitudes[$aptitud] = floatval($_SESSION['ponderaciones_aptitudes'][$aptitud]);
+        }
+    }
+}
+$_SESSION['ponderaciones_aptitudes'] = $ponderaciones_aptitudes;
+
+function sumarPonderacion(&$mapa, $aptitud, $valor) {
+    if (!is_numeric($aptitud)) {
+        return;
+    }
+    $aptitud = intval($aptitud);
+    if ($aptitud < 1 || $aptitud > 6 || $valor == 0) {
+        return;
+    }
+    if (!isset($mapa[$aptitud])) {
+        $mapa[$aptitud] = 0;
+    }
+    $mapa[$aptitud] += $valor;
+}
+
 // Inicializar o manejar el índice actual
 if (!isset($_SESSION['indice_actual'])) {
     $_SESSION['indice_actual'] = 1;
@@ -9,6 +43,29 @@ if (!isset($_SESSION['indice_actual'])) {
 
 // Manejar los botones de navegación
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['selector_opciones'], $_POST['pregunta_actual'])) {
+        $seleccion = $_POST['selector_opciones'];
+        $aptitud_a = isset($_POST['aptitud_opcion_a']) ? intval($_POST['aptitud_opcion_a']) : 0;
+        $aptitud_b = isset($_POST['aptitud_opcion_b']) ? intval($_POST['aptitud_opcion_b']) : 0;
+
+        switch ($seleccion) {
+            case 'opA1':
+                sumarPonderacion($ponderaciones_aptitudes, $aptitud_a, 4);
+                break;
+            case 'opA2':
+                sumarPonderacion($ponderaciones_aptitudes, $aptitud_a, 3);
+                sumarPonderacion($ponderaciones_aptitudes, $aptitud_b, 1);
+                break;
+            case 'opB1':
+                sumarPonderacion($ponderaciones_aptitudes, $aptitud_b, 3);
+                sumarPonderacion($ponderaciones_aptitudes, $aptitud_a, 1);
+                break;
+            case 'opB2':
+                sumarPonderacion($ponderaciones_aptitudes, $aptitud_b, 4);
+                break;
+        }
+    }
+
     // Ir directamente a una pregunta específica desde la grilla
     if (isset($_POST['ir_a'])) {
         $destino = intval($_POST['ir_a']);
@@ -20,6 +77,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (isset($_POST['primera'])) {
         $_SESSION['indice_actual'] = 1;
     }
+
+    $_SESSION['ponderaciones_aptitudes'] = $ponderaciones_aptitudes;
 }
 
 // Arrays para almacenar preguntas y opciones
@@ -53,7 +112,7 @@ if (!empty($rows_preguntas)) {
     $preguntas[$id_pregunta] = $row['pregunta'];
     
     // Query para obtener las opciones de cada pregunta
-    $sql_opciones = "SELECT opcion FROM `opciones-test` WHERE id_pregunta = ? ORDER BY id_opcion";
+    $sql_opciones = "SELECT opcion, id_apt_1 FROM `opciones-test` WHERE id_pregunta = ? ORDER BY id_opcion";
     $stmt = $conn->prepare($sql_opciones);
     $stmt->bind_param("s", $id_pregunta);
     $stmt->execute();
@@ -62,7 +121,10 @@ if (!empty($rows_preguntas)) {
     // Almacenar las opciones en un array temporal
     $opciones_pregunta = array();
     while($opcion_row = $result_opciones->fetch_assoc()) {
-        $opciones_pregunta[] = $opcion_row['opcion'];
+        $opciones_pregunta[] = array(
+            'texto' => $opcion_row['opcion'],
+            'aptitud' => isset($opcion_row['id_apt_1']) ? intval($opcion_row['id_apt_1']) : 0
+        );
     }
     
     // Guardar el array de opciones en el array principal
@@ -255,49 +317,74 @@ echo "</pre>";
         <div class="pregunta" id="titulo-pregunta">Pregunta <?php echo $indice_actual; ?></div>
         <div class="texto-pregunta" id="texto-pregunta"><?php echo htmlspecialchars(isset($preguntas[$indice_actual]) ? $preguntas[$indice_actual] : ''); ?></div>
 
-        <div class="opciones">
-          <?php
+        <?php
           $opciones_actuales = isset($opciones[$indice_actual]) ? $opciones[$indice_actual] : array();
-          $opcion_a = isset($opciones_actuales[0]) ? htmlspecialchars($opciones_actuales[0]) : '';
-          $opcion_b = isset($opciones_actuales[1]) ? htmlspecialchars($opciones_actuales[1]) : '';
+          $opcion_a = isset($opciones_actuales[0]['texto']) ? htmlspecialchars($opciones_actuales[0]['texto']) : '';
+          $opcion_b = isset($opciones_actuales[1]['texto']) ? htmlspecialchars($opciones_actuales[1]['texto']) : '';
+          $aptitud_a_actual = isset($opciones_actuales[0]['aptitud']) ? intval($opciones_actuales[0]['aptitud']) : 0;
+          $aptitud_b_actual = isset($opciones_actuales[1]['aptitud']) ? intval($opciones_actuales[1]['aptitud']) : 0;
+        ?>
 
-          if ($opcion_a !== '' || $opcion_b !== '') {
-              echo '<div class="opciones-row">';
-              echo '<span class="opcion-label">a)</span>';
-              echo '<span class="separator"> </span>';
-              echo '<span class="opcion-text opcion-a">' . $opcion_a . '</span>';
-              echo '<span class="separator"> </span>';
-              echo '<div class="radio-group">
-                      <input type="radio" name="selector_opciones" id="opA1" value="opA1" aria-label="opA1">
-                      <input type="radio" name="selector_opciones" id="opA2" value="opA2" aria-label="opA2">
-                      <input type="radio" name="selector_opciones" id="opB1" value="opB1" aria-label="opB1">
-                      <input type="radio" name="selector_opciones" id="opB2" value="opB2" aria-label="opB2">
-                    </div>';
-              if ($opcion_b !== '') {
-                  echo '<span class="separator"> </span>';
-                  echo '<span class="opcion-label">b)</span>';
-                  echo '<span class="separator"> </span>';
-                  echo '<span class="opcion-text opcion-b">' . $opcion_b . '</span>';
-              }
-              echo '</div>';
-          }
-          ?>
-        </div>
+        <form method="POST" style="margin-top: 20px; display: flex; flex-direction: column; gap: 30px;">
+          <input type="hidden" name="pregunta_actual" value="<?php echo $indice_actual; ?>">
+          <input type="hidden" name="aptitud_opcion_a" value="<?php echo $aptitud_a_actual; ?>">
+          <input type="hidden" name="aptitud_opcion_b" value="<?php echo $aptitud_b_actual; ?>">
 
-        <form method="POST" style="margin-top: 40px; display: flex; justify-content: space-between; gap: 10px;">
-          
-          <?php if ($indice_actual > 1): ?>
-            <button type="submit" name="anterior" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Anterior</button>
-          <?php endif; ?>
-          
-          <?php if ($indice_actual < $total_preguntas): ?>
-            <button type="submit" name="siguiente" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Siguiente</button>
-          <?php endif; ?>
+          <div class="opciones">
+            <?php if ($opcion_a !== '' || $opcion_b !== ''): ?>
+              <div class="opciones-row">
+                <span class="opcion-label">a)</span>
+                <span class="separator"> </span>
+                <span class="opcion-text opcion-a"><?php echo $opcion_a; ?></span>
+                <span class="separator"> </span>
+                <div class="radio-group">
+                  <input type="radio" name="selector_opciones" id="opA1" value="opA1" aria-label="opA1">
+                  <input type="radio" name="selector_opciones" id="opA2" value="opA2" aria-label="opA2">
+                  <input type="radio" name="selector_opciones" id="opB1" value="opB1" aria-label="opB1">
+                  <input type="radio" name="selector_opciones" id="opB2" value="opB2" aria-label="opB2">
+                </div>
+                <?php if ($opcion_b !== ''): ?>
+                  <span class="separator"> </span>
+                  <span class="opcion-label">b)</span>
+                  <span class="separator"> </span>
+                  <span class="opcion-text opcion-b"><?php echo $opcion_b; ?></span>
+                <?php endif; ?>
+              </div>
+            <?php endif; ?>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; gap: 10px;">
+            <?php if ($indice_actual > 1): ?>
+              <button type="submit" name="anterior" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Anterior</button>
+            <?php endif; ?>
+            
+            <?php if ($indice_actual < $total_preguntas): ?>
+              <button type="submit" name="siguiente" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Siguiente</button>
+            <?php endif; ?>
+          </div>
         </form>
+
+        <?php if ($indice_actual == 30): ?>
+          <form action="test2.php" method="get" style="margin-top: 30px; text-align: center;">
+            <?php foreach ($ponderaciones_aptitudes as $aptitud => $valor): ?>
+              <input type="hidden" name="ponderaciones[<?php echo $aptitud; ?>]" value="<?php echo htmlspecialchars($valor, ENT_QUOTES, 'UTF-8'); ?>">
+            <?php endforeach; ?>
+            <button type="submit" style="padding: 12px 28px; font-size: 18px; cursor: pointer; background: #4CAF50; color: #ffffff; border: none; border-radius: 10px;">
+              Ir a la Parte II
+            </button>
+          </form>
+        <?php endif; ?>
       </div>
     </div>
 
   </div>
+
+  <?php
+    echo '<div style="margin-top:40px;background:#fff;padding:20px;border-radius:12px;">';
+    echo '<h3 style="margin-top:0;">Ponderaciones actuales</h3>';
+    echo '<pre style="margin:0;">' . htmlspecialchars(print_r($ponderaciones_aptitudes, true)) . '</pre>';
+    echo '</div>';
+  ?>
 
 </body>
 </html>

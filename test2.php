@@ -2,6 +2,36 @@
 session_start();
 include 'connection.php';
 
+// Diccionario base para las ponderaciones de aptitudes (1 a 6)
+$ponderaciones_base = array(
+    1 => 0,
+    2 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0,
+    6 => 0,
+);
+
+$ponderaciones_aptitudes = $ponderaciones_base;
+if (isset($_SESSION['ponderaciones_aptitudes']) && is_array($_SESSION['ponderaciones_aptitudes'])) {
+    foreach ($ponderaciones_aptitudes as $aptitud => $valor) {
+        if (isset($_SESSION['ponderaciones_aptitudes'][$aptitud])) {
+            $ponderaciones_aptitudes[$aptitud] = floatval($_SESSION['ponderaciones_aptitudes'][$aptitud]);
+        }
+    }
+}
+
+if (isset($_REQUEST['ponderaciones']) && is_array($_REQUEST['ponderaciones'])) {
+    foreach ($ponderaciones_aptitudes as $aptitud => $valor) {
+        if (isset($_REQUEST['ponderaciones'][$aptitud])) {
+            $ponderaciones_aptitudes[$aptitud] = floatval($_REQUEST['ponderaciones'][$aptitud]);
+        }
+    }
+}
+
+$_SESSION['ponderaciones_aptitudes'] = $ponderaciones_aptitudes;
+
+
 // Inicializar o manejar el índice actual
 if (!isset($_SESSION['indice_actual'])) {
     $_SESSION['indice_actual'] = 31;
@@ -79,6 +109,7 @@ print_r($preguntas);
 echo "\n\nArray de Opciones:\n";
 print_r($opciones);
 echo "</pre>";
+
 //*/
 // Ejemplo de cómo acceder a los datos:
 // $preguntas[1] contendrá el texto de la pregunta con id_pregunta = 1
