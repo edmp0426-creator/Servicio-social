@@ -113,6 +113,13 @@ echo "</pre>";
       border-right: 2px solid #bfbfbf;
     }
 
+    .grid-column .grid-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #4CAF50;
+      margin: 0 0 18px;
+    }
+
     .grid-column .grid-form {
       position: sticky;
       top: 40px;
@@ -244,6 +251,7 @@ echo "</pre>";
     <div class="layout">
       <div class="grid-column">
         <!-- Grilla de navegación 5 x n -->
+        <div class="grid-title">Parte II</div>
         <form method="POST" class="grid-form">
           <div class="grid-preguntas">
             <?php foreach ($indices as $i): ?>

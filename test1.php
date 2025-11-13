@@ -177,6 +177,12 @@ echo "</pre>";
     }
 
     /* Grilla de navegación 6 x n */
+    .grid-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #4CAF50;
+      margin: 0 0 18px;
+    }
     .grid-form {
       margin-bottom: 24px;
     }
@@ -229,6 +235,7 @@ echo "</pre>";
     <div class="layout">
       <div class="grid-column">
         <!-- Grilla de navegación 6 x n -->
+        <div class="grid-title">Parte I</div>
         <form method="POST" class="grid-form">
           <div class="grid-preguntas">
             <?php for ($i = 1; $i <= $total_preguntas; $i++): ?>
