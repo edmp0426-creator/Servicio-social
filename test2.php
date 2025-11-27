@@ -2,118 +2,172 @@
 session_start();
 include 'connection.php';
 
-// Diccionario base para las ponderaciones de aptitudes (1 a 6)
-$ponderaciones_base = array(
-    1 => 0,
-    2 => 0,
-    3 => 0,
-    4 => 0,
-    5 => 0,
-    6 => 0,
-);
-
-$ponderaciones_aptitudes = $ponderaciones_base;
-if (isset($_SESSION['ponderaciones_aptitudes']) && is_array($_SESSION['ponderaciones_aptitudes'])) {
-    foreach ($ponderaciones_aptitudes as $aptitud => $valor) {
-        if (isset($_SESSION['ponderaciones_aptitudes'][$aptitud])) {
-            $ponderaciones_aptitudes[$aptitud] = floatval($_SESSION['ponderaciones_aptitudes'][$aptitud]);
+// Interpreta la cadena ansMaster y regresa el recuento por aptitud.
+function interpretarAnsMaster($cadena, $aptitudes_max = 6) {
+    $resultado = array_fill(1, $aptitudes_max, 0);
+    $operaciones = array_filter(explode(';', $cadena));
+    foreach ($operaciones as $op) {
+        $partes = explode('->', $op);
+        if (count($partes) !== 2) {
+            continue;
         }
+        $valor = intval(str_replace(array('{', '}', ' '), '', $partes[0]));
+        $aptitud = intval(str_replace(array('{', '}', ' '), '', $partes[1]));
+        if ($aptitud < 1 || $aptitud > $aptitudes_max || $valor === 0) {
+            continue;
+        }
+        $resultado[$aptitud] += $valor;
     }
+    return $resultado;
 }
 
-if (isset($_REQUEST['ponderaciones']) && is_array($_REQUEST['ponderaciones'])) {
-    foreach ($ponderaciones_aptitudes as $aptitud => $valor) {
-        if (isset($_REQUEST['ponderaciones'][$aptitud])) {
-            $ponderaciones_aptitudes[$aptitud] = floatval($_REQUEST['ponderaciones'][$aptitud]);
-        }
-    }
+// Estado inicial
+if (isset($_REQUEST['ansMaster'])) {
+    $ansMaster = $_REQUEST['ansMaster'];
+    $_SESSION['ansMaster'] = $ansMaster;
+} else {
+    $ansMaster = isset($_SESSION['ansMaster']) ? $_SESSION['ansMaster'] : '';
 }
-
-$_SESSION['ponderaciones_aptitudes'] = $ponderaciones_aptitudes;
-
-
-// Inicializar o manejar el índice actual
 if (!isset($_SESSION['indice_actual'])) {
     $_SESSION['indice_actual'] = 31;
 }
-
-// Manejar los botones de navegación
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Ir directamente a una pregunta específica desde la grilla
-    if (isset($_POST['ir_a'])) {
-        $destino = intval($_POST['ir_a']);
-        $_SESSION['indice_actual'] = $destino;
-    } elseif (isset($_POST['siguiente'])) {
-        $_SESSION['indice_actual']++;
-    } elseif (isset($_POST['anterior'])) {
-        $_SESSION['indice_actual']--;
-    } elseif (isset($_POST['primera'])) {
-        $_SESSION['indice_actual'] = 31;
-    }
-}
+$respondidas_parte2 = isset($_SESSION['respondidas_parte2']) && is_array($_SESSION['respondidas_parte2'])
+    ? $_SESSION['respondidas_parte2']
+    : array();
+$mensaje_error = '';
+$mostrar_comprobacion = false;
+$recuento_actual = array();
 
 // Arrays para almacenar preguntas y opciones
 $preguntas = array();
 $opciones = array();
 
-// Query para obtener todas las preguntas del bloque 1
 $sql_preguntas = "SELECT id_pregunta, pregunta FROM `preguntas-test` WHERE parte = 2 ORDER BY id_pregunta";
 $result_preguntas = $conn->query($sql_preguntas);
-// Convertir todas las filas devueltas a un array y mostrar para depuración
 if ($result_preguntas === false) {
-  // Mostrar error de consulta si falla
-  echo "<pre>Query error: " . htmlspecialchars($conn->error) . "</pre>";
-  $rows_preguntas = array();
-} else {
-  // fetch_all devuelve un array asociativo con todas las filas
-  if (method_exists($result_preguntas, 'fetch_all')) {
-    $rows_preguntas = $result_preguntas->fetch_all(MYSQLI_ASSOC);
-  } else {
-    // Fallback: construir manualmente el array si fetch_all no está disponible
+    echo "<pre>Query error: " . htmlspecialchars($conn->error) . "</pre>";
     $rows_preguntas = array();
-    while ($r = $result_preguntas->fetch_assoc()) {
-      $rows_preguntas[] = $r;
+} else {
+    if (method_exists($result_preguntas, 'fetch_all')) {
+        $rows_preguntas = $result_preguntas->fetch_all(MYSQLI_ASSOC);
+    } else {
+        $rows_preguntas = array();
+        while ($r = $result_preguntas->fetch_assoc()) {
+            $rows_preguntas[] = $r;
+        }
     }
-  }
 }
-// Llenar el array de preguntas a partir de las filas obtenidas
+
 if (!empty($rows_preguntas)) {
-  foreach ($rows_preguntas as $row) {
-    $id_pregunta = $row['id_pregunta'];
-    $preguntas[$id_pregunta] = $row['pregunta'];
-    
-    // Query para obtener las opciones de cada pregunta
-    $sql_opciones = "SELECT opcion, id_apt_1 FROM `opciones-test` WHERE id_pregunta = ? ORDER BY id_opcion LIMIT 4";
-    $stmt = $conn->prepare($sql_opciones);
-    $stmt->bind_param("s", $id_pregunta);
-    $stmt->execute();
-    $result_opciones = $stmt->get_result();
-    
-    // Almacenar las opciones en un array temporal
-    $opciones_pregunta = array();
-    while($opcion_row = $result_opciones->fetch_assoc()) {
-        $opciones_pregunta[] = array(
-          'opcion' => $opcion_row['opcion'],
-          'id_apt_1' => $opcion_row['id_apt_1']
-        );
+    foreach ($rows_preguntas as $row) {
+        $id_pregunta = $row['id_pregunta'];
+        $preguntas[$id_pregunta] = $row['pregunta'];
+
+        $sql_opciones = "SELECT opcion, id_apt_1 FROM `opciones-test` WHERE id_pregunta = ? ORDER BY id_opcion LIMIT 4";
+        $stmt = $conn->prepare($sql_opciones);
+        $stmt->bind_param("s", $id_pregunta);
+        $stmt->execute();
+        $result_opciones = $stmt->get_result();
+
+        $opciones_pregunta = array();
+        while ($opcion_row = $result_opciones->fetch_assoc()) {
+            $opciones_pregunta[] = array(
+                'opcion' => $opcion_row['opcion'],
+                'id_apt_1' => $opcion_row['id_apt_1']
+            );
+        }
+        $opciones[$id_pregunta] = $opciones_pregunta;
     }
-    
-    // Guardar el array de opciones en el array principal
-    $opciones[$id_pregunta] = $opciones_pregunta;
-  }
 }
 
-echo "<pre>";
-echo "Array de Preguntas:\n";
-print_r($preguntas);
-echo "\n\nArray de Opciones:\n";
-print_r($opciones);
-echo "</pre>";
+// Manejo de acciones
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $indice_actual = $_SESSION['indice_actual'];
 
-//*/
-// Ejemplo de cómo acceder a los datos:
-// $preguntas[1] contendrá el texto de la pregunta con id_pregunta = 1
-// $opciones[1] contendrá un array con todas las opciones de la pregunta 1
+    if (isset($_POST['ir_a'])) {
+        $_SESSION['indice_actual'] = intval($_POST['ir_a']);
+    } elseif (isset($_POST['siguiente'])) {
+        $actMaster = isset($_POST['actMaster']) ? trim($_POST['actMaster']) : '';
+        if ($actMaster === '') {
+            $mensaje_error = 'Debes ordenar las opciones antes de continuar.';
+        } else {
+            $ansMaster .= $actMaster;
+            $_SESSION['ansMaster'] = $ansMaster;
+            if (!in_array($indice_actual, $respondidas_parte2, true)) {
+                $respondidas_parte2[] = $indice_actual;
+            }
+            $_SESSION['respondidas_parte2'] = $respondidas_parte2;
+            $_SESSION['indice_actual'] = $indice_actual + 1;
+        }
+    } elseif (isset($_POST['finalizar'])) {
+        $actMaster = isset($_POST['actMaster']) ? trim($_POST['actMaster']) : '';
+        if ($actMaster === '') {
+            $mensaje_error = 'Debes ordenar las opciones antes de continuar.';
+        } else {
+            $ansMaster .= $actMaster;
+            $_SESSION['ansMaster'] = $ansMaster;
+            if (!in_array($indice_actual, $respondidas_parte2, true)) {
+                $respondidas_parte2[] = $indice_actual;
+            }
+            $_SESSION['respondidas_parte2'] = $respondidas_parte2;
+            // Actualizar aptitudes en BD para el usuario registrado en singupprueba.php
+            $aptitudes_guardar = array_fill(1, 6, 0);
+            if (isset($_SESSION['ponderaciones_aptitudes']) && is_array($_SESSION['ponderaciones_aptitudes'])) {
+                foreach ($aptitudes_guardar as $apt => $valor) {
+                    if (isset($_SESSION['ponderaciones_aptitudes'][$apt])) {
+                        $aptitudes_guardar[$apt] = floatval($_SESSION['ponderaciones_aptitudes'][$apt]);
+                    }
+                }
+            }
+            $id_alumno = isset($_SESSION['id_alumno']) ? intval($_SESSION['id_alumno']) : 0;
+            if ($id_alumno > 0 && isset($conn) && $conn instanceof mysqli) {
+                mysqli_report(MYSQLI_REPORT_OFF);
+                try {
+                    $stmtUpd = $conn->prepare(
+                        "UPDATE `alumnos-test` SET `apt1`=?, `ap2`=?, `ap3`=?, `ap4`=?, `ap5`=?, `ap6`=? WHERE `id_alumno`=? LIMIT 1"
+                    );
+                    if ($stmtUpd) {
+                        $stmtUpd->bind_param(
+                            "iiiiiii",
+                            $aptitudes_guardar[1],
+                            $aptitudes_guardar[2],
+                            $aptitudes_guardar[3],
+                            $aptitudes_guardar[4],
+                            $aptitudes_guardar[5],
+                            $aptitudes_guardar[6],
+                            $id_alumno
+                        );
+                        $stmtUpd->execute();
+                        $stmtUpd->close();
+                    }
+                } catch (mysqli_sql_exception $e) {
+                    // Silenciar error para no interrumpir el flujo hacia resultados
+                }
+            }
+            header('Location: resultados/prueba.php');
+            exit;
+        }
+    } elseif (isset($_POST['comprobar'])) {
+        $mostrar_comprobacion = true;
+        $recuento_actual = interpretarAnsMaster($ansMaster);
+    }
+}
+
+$indices = array_keys($preguntas);
+sort($indices, SORT_NUMERIC);
+$total_preguntas = count($indices);
+$min_indice = $total_preguntas ? min($indices) : 31;
+$max_indice = $total_preguntas ? max($indices) : 31;
+
+// Ajuste de limites de navegacion
+$indice_actual = $_SESSION['indice_actual'];
+if ($indice_actual > $max_indice) {
+    $_SESSION['indice_actual'] = $max_indice;
+    $indice_actual = $max_indice;
+} elseif ($indice_actual < $min_indice) {
+    $_SESSION['indice_actual'] = $min_indice;
+    $indice_actual = $min_indice;
+}
 
 ?>
 <!DOCTYPE html>
@@ -122,6 +176,7 @@ echo "</pre>";
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pregunta</title>
+  
   <style>
     body {
       background-color: #d9d9d9; /* gris claro del fondo */
@@ -137,7 +192,6 @@ echo "</pre>";
 
     .grid-column {
       flex: 0 0 20%;
-     
       background: #f5f5f5;
       border-radius: 12px;
       padding: 20px;
@@ -165,7 +219,7 @@ echo "</pre>";
     }
 
     .pregunta {
-      font-size: 48px;
+      font-size: 40px;
       font-weight: 800;
       margin-bottom: 20px;
     }
@@ -225,7 +279,7 @@ echo "</pre>";
       color: #fff;
     }
 
-    /* Grilla de navegación 6 x n */
+    /* Grilla de navegacion 5 x n */
     .grid-form {
       margin-bottom: 24px;
     }
@@ -256,41 +310,55 @@ echo "</pre>";
       border-color: #4CAF50;
       font-weight: 700;
     }
+    .celda-respondida {
+      background: #c8f7c5;
+      border-color: #b2e6ae;
+      color: #1f5e1f;
+    }
+
+    .alerta {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
+<div id="titulo-test" 
+     style="
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        text-align: center;
+        color: #4CAF50;
+     ">
+    Test de Allport
+</div>
+
+  <div class="texto-instruccion" style="font-size:24px; margin-top:-10px; margin-bottom:10px;text-align: center; color:#555;">Instrucciones: Ordena las opciones segun tu preferencia.</div>
 
   <div class="contenedor">
-    <?php
-    $indice_actual = $_SESSION['indice_actual'];
-    $indices = array_keys($preguntas);
-    sort($indices, SORT_NUMERIC);
-    $total_preguntas = count($indices);
-    $min_indice = $total_preguntas ? min($indices) : 31;
-    $max_indice = $total_preguntas ? max($indices) : 31;
-
-    // Asegurar que el índice esté dentro de los límites
-    if ($indice_actual > $max_indice) {
-        $_SESSION['indice_actual'] = $max_indice;
-        $indice_actual = $max_indice;
-    } elseif ($indice_actual < $min_indice) {
-        $_SESSION['indice_actual'] = $min_indice;
-        $indice_actual = $min_indice;
-    }
-    ?>
-
     <div class="layout">
       <div class="grid-column">
-        <!-- Grilla de navegación 5 x n -->
+        <!-- Grilla de navegacion 5 x n -->
         <div class="grid-title">Parte II</div>
         <form method="POST" class="grid-form">
           <div class="grid-preguntas">
-            <?php foreach ($indices as $i): ?>
+            <?php foreach ($indices as $i):
+              $clases = array('celda');
+              if ($i === $indice_actual) $clases[] = 'celda-activa';
+              if (in_array($i, $respondidas_parte2, true)) $clases[] = 'celda-respondida';
+              $clase_str = implode(' ', $clases);
+            ?>
               <button
                 type="submit"
                 name="ir_a"
                 value="<?php echo $i; ?>"
-                class="celda <?php echo ($i === $indice_actual) ? 'celda-activa' : ''; ?>">
+                class="<?php echo $clase_str; ?>">
                 <?php echo $i; ?>
               </button>
             <?php endforeach; ?>
@@ -299,18 +367,23 @@ echo "</pre>";
       </div>
 
       <div class="content-column">
+        <?php if ($mensaje_error !== ''): ?>
+          <div class="alerta"><?php echo htmlspecialchars($mensaje_error); ?></div>
+        <?php endif; ?>
+        
         <div class="pregunta" id="titulo-pregunta">Pregunta <?php echo $indice_actual; ?></div>
+        
         <div class="texto-pregunta" id="texto-pregunta"><?php echo htmlspecialchars(isset($preguntas[$indice_actual]) ? $preguntas[$indice_actual] : ''); ?></div>
 
-        <div class="opciones">
+        <div class="opciones" id="opciones-lista">
           <?php
           $opciones_actuales = isset($opciones[$indice_actual]) ? $opciones[$indice_actual] : array();
           for ($i = 0; $i < min(count($opciones_actuales), 4); $i++) {
               $texto = isset($opciones_actuales[$i]['opcion']) ? $opciones_actuales[$i]['opcion'] : '';
-              $label = '#' . ($i + 1);
-              echo '<div class="opcion-row">';
-              echo '<span class="opcion-label">' . htmlspecialchars($label) . '</span>';
-              echo '<div class="opcion" id="opcion'.($i+1).'">';
+              $aptitud_op = isset($opciones_actuales[$i]['id_apt_1']) ? intval($opciones_actuales[$i]['id_apt_1']) : 0;
+              echo '<div class="opcion-row" data-aptitud="'.htmlspecialchars($aptitud_op).'">';
+              echo '<span class="opcion-label">#' . ($i + 1) . '</span>';
+              echo '<div class="opcion">';
               echo '<span class="opcion-texto">' . htmlspecialchars($texto) . '</span>';
               echo '<div class="opcion-controles">';
               echo '<button type="button" class="btn-mover" data-dir="up" aria-label="Mover opcion hacia arriba">&#8593;</button>';
@@ -322,14 +395,13 @@ echo "</pre>";
           ?>
         </div>
 
-        <form method="POST" style="margin-top: 40px; display: flex; justify-content: space-between; gap: 10px;">
-          
-          <?php if ($indice_actual > $min_indice): ?>
-            <button type="submit" name="anterior" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Anterior</button>
-          <?php endif; ?>
-          
+        <form id="form-parte2" method="POST" style="margin-top: 40px; display: flex; justify-content: space-between; gap: 10px; align-items: center;">
+          <input type="hidden" name="actMaster" id="actMaster" value="">
+          <button type="submit" name="comprobar" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Comprobacion</button>
           <?php if ($indice_actual < $max_indice): ?>
             <button type="submit" name="siguiente" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Siguiente</button>
+          <?php else: ?>
+            <button type="submit" name="finalizar" style="padding: 10px 20px; font-size: 18px; cursor: pointer;">Finalizar y ver resultados</button>
           <?php endif; ?>
         </form>
       </div>
@@ -337,10 +409,20 @@ echo "</pre>";
 
 </div>
 
+<div style="margin-top:40px;background:#fff;padding:20px;border-radius:12px;">
+  <h3 style="margin-top:0;">ansMaster (debug)</h3>
+  <pre style="margin:0;"><?php echo htmlspecialchars($ansMaster); ?></pre>
+  <?php if ($mostrar_comprobacion): ?>
+    <h4>Recuento actual</h4>
+    <pre style="margin:0;"><?php echo htmlspecialchars(print_r($recuento_actual, true)); ?></pre>
+  <?php endif; ?>
+</div>
+
 <script>
   (function() {
-    const contenedorOpciones = document.querySelector('.opciones');
-    if (!contenedorOpciones) return;
+    const contenedorOpciones = document.getElementById('opciones-lista');
+    const inputActMaster = document.getElementById('actMaster');
+    if (!contenedorOpciones || !inputActMaster) return;
 
     const actualizarEtiquetas = () => {
       const filas = contenedorOpciones.querySelectorAll('.opcion-row');
@@ -350,6 +432,17 @@ echo "</pre>";
           label.textContent = '#' + (index + 1);
         }
       });
+    };
+
+    const actualizarActMaster = () => {
+      const filas = Array.from(contenedorOpciones.querySelectorAll('.opcion-row'));
+      const secciones = filas.map((fila, idx) => {
+        const apt = fila.getAttribute('data-aptitud');
+        // Posiciones: 1->valor 4, 2->valor 3, 3->valor 2, 4->valor 1
+        const valor = 4 - idx;
+        return `{${valor}}->{${apt}};`;
+      });
+      inputActMaster.value = secciones.join('');
     };
 
     contenedorOpciones.addEventListener('click', function(evento) {
@@ -366,17 +459,20 @@ echo "</pre>";
         if (anterior) {
           contenedorOpciones.insertBefore(fila, anterior);
           actualizarEtiquetas();
+          actualizarActMaster();
         }
       } else if (direccion === 'down') {
         const siguiente = fila.nextElementSibling;
         if (siguiente) {
           contenedorOpciones.insertBefore(siguiente, fila);
           actualizarEtiquetas();
+          actualizarActMaster();
         }
       }
     });
 
     actualizarEtiquetas();
+    actualizarActMaster();
   })();
 </script>
 
