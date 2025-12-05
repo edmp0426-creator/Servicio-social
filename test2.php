@@ -110,13 +110,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $respondidas_parte2[] = $indice_actual;
             }
             $_SESSION['respondidas_parte2'] = $respondidas_parte2;
-            // Actualizar aptitudes en BD para el usuario registrado en singupprueba.php
+            // Calcular ponderaciones de aptitudes a partir del ansMaster
+            $recuento_final = interpretarAnsMaster($ansMaster);
+            // Guardar ponderaciones en sesión para cálculos posteriores
+            $_SESSION['ponderaciones_aptitudes'] = $recuento_final;
+            
+            // Actualizar aptitudes en BD para el usuario loggeado
             $aptitudes_guardar = array_fill(1, 6, 0);
-            if (isset($_SESSION['ponderaciones_aptitudes']) && is_array($_SESSION['ponderaciones_aptitudes'])) {
-                foreach ($aptitudes_guardar as $apt => $valor) {
-                    if (isset($_SESSION['ponderaciones_aptitudes'][$apt])) {
-                        $aptitudes_guardar[$apt] = floatval($_SESSION['ponderaciones_aptitudes'][$apt]);
-                    }
+            foreach ($recuento_final as $apt => $valor) {
+                if (isset($aptitudes_guardar[$apt])) {
+                    $aptitudes_guardar[$apt] = floatval($valor);
                 }
             }
             $id_alumno = isset($_SESSION['id_alumno']) ? intval($_SESSION['id_alumno']) : 0;
@@ -128,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     );
                     if ($stmtUpd) {
                         $stmtUpd->bind_param(
-                            "iiiiiii",
+                            "ddddddi",
                             $aptitudes_guardar[1],
                             $aptitudes_guardar[2],
                             $aptitudes_guardar[3],
@@ -144,7 +147,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Silenciar error para no interrumpir el flujo hacia resultados
                 }
             }
-            header('Location: resultados/prueba.php');
+            // Redirigir a página de resultados
+            header('Location: Disenos/resultado.php');
             exit;
         }
     } elseif (isset($_POST['comprobar'])) {

@@ -2,63 +2,76 @@
 session_start();
 
 // Configuración de la base de datos
-$host = 'mysql';  // Nombre del servicio en docker-compose.yml
+$host = 'mysql';  // Este es el nombre del servicio en docker-compose.yml
 $dbname = 'test-allport';
 $username = 'root';
 $password = 'root';
 
-// Si ya hay sesión, redirige
+// Verificar si ya hay una sesión iniciada
 if (isset($_SESSION['id_alumno'])) {
-    header("Location: dashboard.php");
+    header("Location: resultados/prueba.php");
     exit();
 }
 
-$error = '';
-
+// Procesar el formulario cuando se envía
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         // Conectar a la base de datos
-        $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $conn = new mysqli($host, $username, $password, $dbname);
+        
+        // Verificar conexión
+        if ($conn->connect_error) {
+            throw new Exception("Conexión fallida: " . $conn->connect_error);
+        }
 
         // Obtener datos del formulario
-        $matricula = isset($_POST['matricula']) ? trim($_POST['matricula']) : '';
-        $apellido1 = isset($_POST['apellido1']) ? trim($_POST['apellido1']) : '';
+        $user_input = isset($_POST['user_input']) ? trim($_POST['user_input']) : '';
+        $password_input = isset($_POST['password']) ? trim($_POST['password']) : '';
+        $error = '';
 
-        if ($matricula === '' || $apellido1 === '') {
-            $error = "Ingresa matrícula y primer apellido.";
-        } elseif (!ctype_digit($matricula)) {
-            $error = "La matrícula debe ser numérica.";
+        if ($user_input === '' || $password_input === '') {
+            $error = "Por favor completa todos los campos";
         } else {
-            // Preparar la consulta contra alumnos-test
-            $stmt = $conn->prepare("SELECT * FROM `alumnos-test` WHERE `matricula-alumno` = ? AND `apellido1_alumno` = ? LIMIT 1");
-            $stmt->execute([$matricula, $apellido1]);
-            $alumno = $stmt->fetch(PDO::FETCH_ASSOC);
+            // Preparar consulta para buscar por matrícula o email
+            $query = "SELECT * FROM `alumnos-test` WHERE `matricula-alumno` = ? OR `email` = ? LIMIT 1";
+            $stmt = $conn->prepare($query);
+            
+            if ($stmt === false) {
+                throw new Exception("Error en la preparación: " . $conn->error);
+            }
+            
+            $stmt->bind_param("ss", $user_input, $user_input);
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Error al ejecutar: " . $stmt->error);
+            }
+            
+            $result = $stmt->get_result();
+            $alumno = $result->fetch_assoc();
+            $stmt->close();
 
-            if ($alumno) {
+            // Validar contraseña
+            if ($alumno && $password_input === $alumno['contrasena']) {
                 // Iniciar sesión con datos del alumno
-                $_SESSION['id_alumno'] = (int)$alumno['id_alumno'];
+                $_SESSION['id_alumno'] = $alumno['id_alumno'];
                 $_SESSION['nombre_alumno'] = $alumno['nombre_alumno'];
                 $_SESSION['apellido1_alumno'] = $alumno['apellido1_alumno'];
                 $_SESSION['apellido2_alumno'] = $alumno['apellido2_alumno'];
-                $_SESSION['matricula_alumno'] = (int)$alumno['matricula-alumno'];
-                $_SESSION['ponderaciones_aptitudes'] = array(
-                    1 => (int)$alumno['apt1'],
-                    2 => (int)$alumno['ap2'],
-                    3 => (int)$alumno['ap3'],
-                    4 => (int)$alumno['ap4'],
-                    5 => (int)$alumno['ap5'],
-                    6 => (int)$alumno['ap6'],
-                );
+                $_SESSION['matricula_alumno'] = $alumno['matricula-alumno'];
+                $_SESSION['email'] = $alumno['email'];
 
-                header("Location: dashboard.php");
+                // Redirigir al dashboard
+                header("Location: resultados/prueba.php");
                 exit();
             } else {
-                $error = "No se encontró un alumno con esos datos.";
+                $error = "Matrícula/Email o contraseña incorrectos";
             }
         }
-    } catch(PDOException $e) {
-        $error = "Error de conexión: " . $e->getMessage();
+        
+        $conn->close();
+        
+    } catch(Exception $e) {
+        $error = "Error: " . $e->getMessage();
     }
 }
 ?>
@@ -78,13 +91,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
                 <img src="imagenes/logo.png" alt="Logo" class="logo">
                 <h2>Ingresar</h2>
-                <?php if (!empty($error)): ?>
+                <?php if (isset($error)): ?>
                     <div class="error-message" style="color: red; margin-bottom: 10px;">
                         <?php echo htmlspecialchars($error); ?>
                     </div>
                 <?php endif; ?>
-                <input type="text" name="matricula" placeholder="Matrícula (número)" required>
-                <input type="text" name="apellido1" placeholder="Primer apellido" required>
+                <input type="text" name="user_input" placeholder="Matrícula o Correo Electrónico" required>
+                <input type="password" name="password" placeholder="Contraseña" required>
                 <button type="submit" class="btn">Ingresar</button>
             </form>
         </div>

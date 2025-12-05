@@ -17,6 +17,10 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
+-- Forzar creación/uso de la base de datos correcta durante la inicialización
+CREATE DATABASE IF NOT EXISTS `test-allport-db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE `test-allport-db`;
+
 --
 -- Base de datos: `test-allport`
 --
@@ -27,21 +31,7 @@ SET time_zone = "+00:00";
 -- Estructura de tabla para la tabla `alumnos-test`
 --
 
-CREATE TABLE `alumnos-test` (
-  `id_alumno` int NOT NULL,
-  `nombre_alumno` varchar(70) NOT NULL,
-  `apellido1_alumno` varchar(50) NOT NULL,
-  `apellido2_alumno` varchar(50) NOT NULL,
-  `matricula-alumno` int NOT NULL,
-  `apt1` int NOT NULL,
-  `ap2` int NOT NULL,
-  `ap3` int NOT NULL,
-  `ap4` int NOT NULL,
-  `ap5` int NOT NULL,
-  `ap6` int NOT NULL,
-  `estado` BOOLEAN NOT NULL DEFAULT 0,
-  `respuestas-alumno` varchar(300) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 -- --------------------------------------------------------
 

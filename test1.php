@@ -114,6 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $_SESSION['respondidas_parte1'] = $respondidas_parte1;
             if ($indice_actual >= $total_preguntas) {
+                // Redirigir a test2.php manteniendo sesión
                 header('Location: test2.php');
                 exit;
             } else {
